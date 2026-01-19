@@ -1,34 +1,79 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-
-export const metadata = {
-  title: 'Approvals - Work Management System',
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function ApprovalsPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-serif font-bold text-foreground mb-4">Approvals</h1>
-      
-      <div className="bg-card border border-border rounded p-6 mb-8 shadow-sm">
-        <p className="text-foreground mb-4">
-          This page is used by HR to approve skills and resource demands.
-        </p>
+    <div className="flex-1 space-y-4 p-4 pt-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Approvals</h2>
       </div>
 
-      <div className="bg-muted border border-border rounded p-6 mb-8">
-        <h2 className="text-lg font-serif font-semibold text-foreground mb-4">Actions</h2>
-        <ul className="space-y-2 text-foreground">
-          <li>• Approve skills</li>
-          <li>• Approve demands</li>
-        </ul>
-      </div>
+      <Tabs defaultValue="pending" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
 
-      <div className="flex gap-4">
-        <Link href="/dashboard">
-          <Button variant="outline">Go to Dashboard</Button>
-        </Link>
-      </div>
+        <TabsContent value="pending" className="space-y-4">
+          {/* Approval Item 1 */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="space-y-1">
+                <CardTitle className="text-base">
+                  Resource Demand Request
+                </CardTitle>
+                <CardDescription>
+                  Requested by Project Manager A regarding Project X
+                </CardDescription>
+              </div>
+              <Badge variant="secondary">Pending</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="py-4 text-sm">
+                Requesting <strong>2 Senior React Developers</strong> for{" "}
+                <strong>3 months</strong> starting Feb 1st.
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm">
+                  Reject
+                </Button>
+                <Button size="sm">Approve</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Approval Item 2 */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="space-y-1">
+                <CardTitle className="text-base">Skill Verification</CardTitle>
+                <CardDescription>John Doe added "Next.js 14"</CardDescription>
+              </div>
+              <Badge variant="secondary">Pending</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="py-4 text-sm">
+                Employee claims <strong>Expert</strong> proficiency.
+                Verification needed.
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm">
+                  Reject
+                </Button>
+                <Button size="sm">Verify & Approve</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
-  )
+  );
 }

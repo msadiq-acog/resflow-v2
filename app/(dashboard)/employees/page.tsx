@@ -1,35 +1,88 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-
-export const metadata = {
-  title: 'Employees - Work Management System',
-}
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Search, Filter } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function EmployeesPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-serif font-bold text-foreground mb-4">Employees</h1>
-      
-      <div className="bg-card border border-border rounded p-6 mb-8 shadow-sm">
-        <p className="text-foreground mb-4">
-          This page shows all employees in the company.
-          Each employee has a profile with projects, skills, logs, and reports.
-        </p>
-      </div>
-
-      <div className="bg-muted border border-border rounded p-6 mb-8">
-        <h2 className="text-lg font-serif font-semibold text-foreground mb-4">Actions</h2>
-        <ul className="space-y-2 text-foreground">
-          <li>• Browse employees</li>
-          <li>• Open employee profile</li>
-        </ul>
-      </div>
-
-      <div className="flex gap-4">
-        <Link href="/employees/1">
-          <Button>View Employee</Button>
+    <div className="flex-1 space-y-4 p-4 pt-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Employees</h2>
+        <Link href="/employees/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Add Employee
+          </Button>
         </Link>
       </div>
+
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input className="pl-8" placeholder="Search employees..." />
+        </div>
+        <Button variant="outline" size="icon">
+          <Filter className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/* Example row - map your data here */}
+            <TableRow>
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>JD</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">John Doe</div>
+                    <div className="text-xs text-muted-foreground">
+                      john@example.com
+                    </div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>Senior Developer</TableCell>
+              <TableCell>Engineering</TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200"
+                >
+                  Active
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <Link href="/employees/1">
+                  <Button variant="ghost" size="sm">
+                    View
+                  </Button>
+                </Link>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
     </div>
-  )
+  );
 }

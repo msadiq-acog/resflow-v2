@@ -11,10 +11,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { navConfig } from "@/lib/nav";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { LogOut, User } from "lucide-react";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -24,15 +26,20 @@ export function AppSidebar() {
       <SidebarHeader className="border-b px-6 py-4">
         <h2 className="text-xl font-serif font-bold text-primary">ResFlow</h2>
       </SidebarHeader>
+
       <SidebarContent>
-        {/* Dashboard */}
+        {/* Main Dashboard */}
         <SidebarGroup>
           <SidebarMenu>
             {navConfig.main.map((item) => (
               <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton asChild isActive={pathname === item.url}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.url}
+                  tooltip={item.title}
+                >
                   <Link href={item.url}>
-                    <item.icon className="h-4 w-4" />
+                    <item.icon />
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
@@ -51,9 +58,10 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith(item.url)}
+                    tooltip={item.title}
                   >
                     <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -73,9 +81,10 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={pathname.startsWith(item.url)}
+                    tooltip={item.title}
                   >
                     <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -85,8 +94,92 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Governance & Reports - Add similar groups for other sections */}
+        {/* Governance */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Governance</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navConfig.governance.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(item.url)}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Analytics */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Analytics</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navConfig.reports.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(item.url)}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* System */}
+        <SidebarGroup>
+          <SidebarGroupLabel>System</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navConfig.system.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname.startsWith(item.url)}
+                    tooltip={item.title}
+                  >
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-t p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <User />
+              <span>User Profile</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton className="text-destructive hover:text-destructive">
+              <LogOut />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

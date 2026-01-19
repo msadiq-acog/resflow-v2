@@ -1,43 +1,84 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-
-export const metadata = {
-  title: 'Project Details - Work Management System',
-}
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function ProjectDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: { id: string };
 }) {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-serif font-bold text-foreground mb-4">Project Details</h1>
-      
-      <div className="bg-card border border-border rounded p-6 mb-8 shadow-sm">
-        <p className="text-foreground mb-4">
-          This page shows all information about a project.
-          It contains team, allocations, phases, and status.
-        </p>
+    <div className="flex-1 space-y-4 p-4 pt-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">
+          Project {params.id}
+        </h2>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline">Edit Project</Button>
+          <Button>Add Task</Button>
+        </div>
       </div>
 
-      <div className="bg-muted border border-border rounded p-6 mb-8">
-        <h2 className="text-lg font-serif font-semibold text-foreground mb-4">Actions</h2>
-        <ul className="space-y-2 text-foreground">
-          <li>• View team</li>
-          <li>• View allocations</li>
-          <li>• View phases</li>
-        </ul>
-      </div>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="phases">Phases</TabsTrigger>
+        </TabsList>
 
-      <div className="flex gap-4">
-        <Link href="/projects/1/phases">
-          <Button>View Phases</Button>
-        </Link>
-        <Link href="/projects">
-          <Button variant="outline">Back to Projects</Button>
-        </Link>
-      </div>
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">45%</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Budget</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$12,000</div>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Detailed description of the project goes here. This would be
+                fetched from your backend based on the ID {params.id}.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="team">
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Members</CardTitle>
+              <CardDescription>
+                Manage your team and their allocations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Team list component goes here.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
-  )
+  );
 }
