@@ -37,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
-        <nav className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
+        {/* <nav className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <Link
@@ -116,7 +116,7 @@ export default function RootLayout({
               </div>
             </div>
           </div>
-        </nav>
+        </nav> */}
         <main className="min-h-screen">{children}</main>
       </body>
     </html>
