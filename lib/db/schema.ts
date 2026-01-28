@@ -14,8 +14,8 @@ import {
 // Enums
 export const employeeRoleEnum = pgEnum("employee_role", ["EMP", "PM", "HR"]);
 export const employeeTypeEnum = pgEnum("employee_type", [
-  "Full-Time",
-  "Intern",
+  "FTE",
+  "INTERN",
   "Trainee",
 ]);
 export const genderEnum = pgEnum("gender", ["Male", "Female", "Other"]);
@@ -74,7 +74,7 @@ export const employees = pgTable("employees", {
   working_location: varchar("working_location", { length: 100 }).notNull(),
   department_id: uuid("department_id"),
   reporting_manager_id: uuid("reporting_manager_id"), // Organizational reporting manager
-  experience_years: decimal("experience_years", { precision: 4, scale: 1 }),
+  experience_years: varchar("experience_years", { length: 50 }),
   resume_url: text("resume_url"),
   college: varchar("college", { length: 255 }),
   degree: varchar("degree", { length: 255 }),
