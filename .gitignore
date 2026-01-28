@@ -26,5 +26,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/Mapspostgres/data
-/data/users.csv
+maps
+data
+docs
+postgres
+backups
