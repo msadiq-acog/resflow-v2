@@ -6,11 +6,40 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "your-secret-key-change-in-production",
 );
 
+// DB role enum values (as stored in database)
+export type DbRole = "EMP" | "PM" | "HR";
+
+// App role strings (used throughout application)
+export type EmployeeRole = "employee" | "project_manager" | "hr_executive";
+
+// DB to App mapping
+export const ROLE_MAP: Record<DbRole, EmployeeRole> = {
+  EMP: "employee",
+  PM: "project_manager",
+  HR: "hr_executive",
+};
+
+// App to DB mapping
+export const ROLE_REVERSE_MAP: Record<EmployeeRole, DbRole> = {
+  employee: "EMP",
+  project_manager: "PM",
+  hr_executive: "HR",
+};
+
+// Mapping functions
+export function mapDbRoleToApp(dbRole: DbRole): EmployeeRole {
+  return ROLE_MAP[dbRole];
+}
+
+export function mapAppRoleToDb(appRole: EmployeeRole): DbRole {
+  return ROLE_REVERSE_MAP[appRole];
+}
+
 export interface User {
   id: string;
   employee_code: string;
   ldap_username: string;
-  employee_role: "employee" | "project_manager" | "hr_executive";
+  employee_role: EmployeeRole;
   full_name?: string;
   email?: string;
 }
@@ -33,10 +62,7 @@ export async function getCurrentUser(req: NextRequest): Promise<User> {
       id: payload.id as string,
       employee_code: payload.employee_code as string,
       ldap_username: payload.ldap_username as string,
-      employee_role: payload.employee_role as
-        | "employee"
-        | "project_manager"
-        | "hr_executive",
+      employee_role: payload.employee_role as EmployeeRole,
       full_name: payload.full_name as string,
       email: payload.email as string,
     } as User;

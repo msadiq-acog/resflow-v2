@@ -1,36 +1,23 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
   employee_code: string;
   ldap_username: string;
-  full_name: string;
-  email: string;
-  employee_type: string;
-  employee_role: string;
-  employee_design: string;
-  working_location: string;
-  department_id: string;
-  project_manager_id: string | null;
-  experience_years: number;
-  resume_url: string | null;
-  college: string | null;
-  degree: string | null;
-  status: string;
-  joined_on: string;
-  exited_on: string | null;
+  full_name?: string;
+  email?: string;
+  employee_role: "employee" | "project_manager" | "hr_executive";
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  loading: boolean;
-  login: (token: string, user: User) => void;
-  logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (token: string, userData: User) => void;
+  logout: () => void;
   hasRole: (roles: string[]) => boolean;
 }
 
@@ -38,42 +25,41 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Load user from localStorage on mount (mock auth)
+  // Load user from localStorage on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("user_info");
+    const token = localStorage.getItem("auth_token");
+    const userInfo = localStorage.getItem("user_info");
 
-    if (storedToken && storedUser) {
+    if (token && userInfo) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setToken(storedToken);
+        const parsedUser = JSON.parse(userInfo);
         setUser(parsedUser);
+        setIsAuthenticated(true);
       } catch (error) {
-        console.error("Error parsing stored user:", error);
+        console.error("Failed to parse user info:", error);
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_info");
       }
     }
-    setLoading(false);
+    setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, newUser: User) => {
-    setToken(newToken);
-    setUser(newUser);
-    localStorage.setItem("auth_token", newToken);
-    localStorage.setItem("user_info", JSON.stringify(newUser));
+  const login = (token: string, userData: User) => {
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem("user_info", JSON.stringify(userData));
+    setUser(userData);
+    setIsAuthenticated(true);
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_info");
-    router.push("/login");
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
   const hasRole = (roles: string[]): boolean => {
@@ -81,17 +67,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return roles.includes(user.employee_role);
   };
 
-  const value = {
-    user,
-    token,
-    loading,
-    login,
-    logout,
-    isAuthenticated: !!token && !!user,
-    hasRole,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, isLoading, login, logout, hasRole }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
