@@ -52,7 +52,7 @@ export default function SettingsPage() {
 }
 
 function SettingsContent() {
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,38 +68,70 @@ function SettingsContent() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        const token = localStorage.getItem("auth_token");
+        console.log("[Settings] Fetching profile...");
+        console.log("[Settings] Token exists:", !!token);
+
+        if (!token) {
+          console.error("[Settings] No auth token found");
+          setError("Not authenticated");
+          return;
+        }
+
+        console.log("[Settings] Making request to /api/auth/me");
         const response = await fetch("/api/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        console.log("[Settings] Response status:", response.status);
+        console.log("[Settings] Response ok:", response.ok);
+
         if (!response.ok) {
-          throw new Error("Failed to fetch profile");
+          const errorText = await response.text();
+          console.error("[Settings] Error response:", errorText);
+          throw new Error(
+            `Failed to fetch profile: ${response.status} - ${errorText}`,
+          );
         }
 
         const data = await response.json();
-        setProfile(data);
-        setResumeUrl(data.resume_url || "");
-        setCollege(data.college || "");
-        setDegree(data.degree || "");
-        setEducationalStream(data.educational_stream || "");
+        console.log("[Settings] Profile data received:", data);
+
+        const profileData = data.data || data;
+        console.log("[Settings] Extracted profile data:", profileData);
+
+        setProfile(profileData);
+        setResumeUrl(profileData.resume_url || "");
+        setCollege(profileData.college || "");
+        setDegree(profileData.degree || "");
+        setEducationalStream(profileData.educational_stream || "");
+
+        console.log("[Settings] Profile loaded successfully");
       } catch (err) {
-        console.error("Error fetching profile:", err);
-        setError("Failed to load profile");
+        console.error("[Settings] Error fetching profile:", err);
+        setError(err instanceof Error ? err.message : "Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, [token]);
+  }, []);
 
   const handleSaveProfile = async () => {
     setSaving(true);
     setError("");
 
     try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        setError("Not authenticated");
+        setSaving(false);
+        return;
+      }
+
       const response = await fetch("/api/employees", {
         method: "PUT",
         headers: {

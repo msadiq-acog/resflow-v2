@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { getCurrentUser, createToken } from "@/lib/auth";
+import {
+  getCurrentUser,
+  createToken,
+  mapDbRoleToApp,
+  type DbRole,
+  type EmployeeRole,
+} from "@/lib/auth";
 import { authenticateLDAP, isValidLDAPUsername } from "@/lib/ldap-helpers";
 import {
   ErrorResponses,
@@ -19,53 +25,6 @@ export async function POST(req: NextRequest) {
   }
 
   return handleLogin(req);
-}
-
-// GET /api/auth/me
-export async function GET(req: NextRequest) {
-  try {
-    const user = await getCurrentUser(req);
-
-    // Fetch complete user details from database
-    const [employee] = await db
-      .select()
-      .from(schema.employees)
-      .where(eq(schema.employees.id, user.id));
-
-    if (!employee) {
-      return ErrorResponses.notFound("User");
-    }
-
-    // Return all user fields
-    return successResponse({
-      id: employee.id,
-      employee_code: employee.employee_code,
-      ldap_username: employee.ldap_username,
-      full_name: employee.full_name,
-      email: employee.email,
-      gender: employee.gender,
-      employee_type: employee.employee_type,
-      employee_role: employee.employee_role,
-      employee_design: employee.employee_design,
-      working_location: employee.working_location,
-      department_id: employee.department_id,
-      reporting_manager_id: employee.reporting_manager_id,
-      experience_years: employee.experience_years,
-      resume_url: employee.resume_url,
-      college: employee.college,
-      degree: employee.degree,
-      educational_stream: employee.educational_stream,
-      status: employee.status,
-      joined_on: employee.joined_on,
-      exited_on: employee.exited_on,
-    });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("token")) {
-      return ErrorResponses.unauthorized("Invalid or expired token");
-    }
-    console.error("Error fetching current user:", error);
-    return ErrorResponses.internalError();
-  }
 }
 
 /**
@@ -148,17 +107,14 @@ async function handleLogin(req: NextRequest) {
       id: employee.id,
       employee_code: employee.employee_code,
       ldap_username: employee.ldap_username,
-      employee_role: employee.employee_role as
-        | "employee"
-        | "project_manager"
-        | "hr_executive",
+      employee_role: mapDbRoleToApp(employee.employee_role as DbRole),
       full_name: employee.full_name,
       email: employee.email,
     });
 
     console.log(`[AUTH] ✓ Login successful for ${ldap_username}`);
 
-    // Return token and user details
+    // Return token and user details (with mapped role for consistency)
     return successResponse({
       token,
       user: {
@@ -168,7 +124,7 @@ async function handleLogin(req: NextRequest) {
         full_name: employee.full_name,
         email: employee.email,
         employee_type: employee.employee_type,
-        employee_role: employee.employee_role,
+        employee_role: mapDbRoleToApp(employee.employee_role as DbRole),
         employee_design: employee.employee_design,
         status: employee.status,
       },

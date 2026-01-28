@@ -1,66 +1,81 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LoadingPage } from "@/components/loading-spinner";
-import { StatusBadge } from "@/components/status-badge";
-import { EmptyState } from "@/components/empty-state";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { StatusBadge } from "@/components/status-badge";
 import {
-  Calendar,
-  CheckCircle2,
-  FileText,
-  FolderOpen,
-  ArrowRight,
+  Briefcase,
+  CheckSquare,
   Clock,
   AlertCircle,
-  Plus,
+  Users,
+  FileText,
+  Calendar,
+  ArrowUpRight,
+  UserPlus,
+  FolderPlus,
+  ListChecks,
+  Settings,
 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DashboardMetrics {
-  pendingTasks: number;
-  completedTasks: number;
-  activeProjects: number;
-  missingReports: number;
-  weeklyHours: number;
-}
-
-interface Task {
-  id: string;
-  description: string;
-  due_on: string;
-  status: string;
-  entity_type: string;
-  entity_id: string;
-  owner_name?: string;
-  project_name?: string;
-}
-
-interface DashboardData {
-  metrics: DashboardMetrics;
-  tasks: Task[];
+  role: string;
+  metrics: {
+    pendingTasks?: number;
+    completedTasks?: number;
+    activeProjects?: number;
+    missingReports?: number;
+    weeklyHours?: number;
+    totalEmployees?: number;
+    pendingDemands?: number;
+    pendingApprovals?: number;
+    teamMembers?: number;
+    completedProjects?: number;
+  };
+  recentTasks?: any[];
+  recentEmployees?: any[];
 }
 
 export default function DashboardPage() {
-  const { token, user } = useAuth();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardMetrics | null>(
+    null,
+  );
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+
     const fetchDashboardData = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem("auth_token");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+
         const response = await fetch("/api/dashboard/metrics", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -68,11 +83,17 @@ export default function DashboardPage() {
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            // Token expired or invalid
+            router.push("/login");
+            return;
+          }
           throw new Error("Failed to fetch dashboard data");
         }
 
         const result = await response.json();
-        setData(result);
+        console.log("Dashboard data received:", result);
+        setDashboardData(result.data);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError(
@@ -83,237 +104,621 @@ export default function DashboardPage() {
       }
     };
 
-    fetchDashboardData();
-  }, [token]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return "Tomorrow";
+    // Only fetch if we have a token
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      fetchDashboardData();
+    } else {
+      router.push("/login");
     }
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
+  }, [router, authLoading]);
 
-  const getQuickActions = () => {
-    if (!user) return [];
-
-    switch (user.employee_role) {
-      case "hr_executive":
-        return [
-          { label: "Add Employee", href: "/employees/new", icon: Plus },
-          { label: "View Demands", href: "/demands", icon: FileText },
-          { label: "Review Approvals", href: "/approvals", icon: CheckCircle2 },
-        ];
-      case "project_manager":
-        return [
-          { label: "Create Project", href: "/projects/new", icon: Plus },
-          { label: "Assign Tasks", href: "/tasks/new", icon: Plus },
-          { label: "View Allocations", href: "/allocations", icon: Calendar },
-        ];
-      default:
-        return [
-          { label: "View Tasks", href: "/tasks", icon: FileText },
-          { label: "Submit Report", href: "/reports", icon: FileText },
-          { label: "Log Hours", href: "/logs", icon: Clock },
-        ];
-    }
-  };
-
-  if (loading) {
-    return <LoadingPage />;
-  }
-
-  if (error || !data) {
+  if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error || "Failed to load dashboard data"}
-          </AlertDescription>
-        </Alert>
+      <div className="flex-1 flex items-center justify-center">
+        <LoadingSpinner />
       </div>
     );
   }
 
-  const { metrics, tasks } = data;
-  const quickActions = getQuickActions();
+  // Always show dashboard, even with errors or no data
+  const metrics = dashboardData?.metrics || {
+    pendingTasks: 0,
+    completedTasks: 0,
+    activeProjects: 0,
+    missingReports: 0,
+    weeklyHours: 0,
+    totalEmployees: 0,
+    pendingDemands: 0,
+    pendingApprovals: 0,
+    teamMembers: 0,
+    completedProjects: 0,
+  };
+  const recentTasks = dashboardData?.recentTasks || [];
+  const recentEmployees = dashboardData?.recentEmployees || [];
+
+  // Get role from user context or from dashboard data
+  const userRole = user?.employee_role || dashboardData?.role || "employee";
+
+  // Format date
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">
+          {userRole === "employee" && "Employee Dashboard"}
+          {userRole === "project_manager" && "Project Manager Dashboard"}
+          {userRole === "hr_executive" && "HR Dashboard"}
+        </h2>
+      </div>
+
+      {/* Error Alert (if any) */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Overview Section */}
       <div>
-        <h1 className="text-3xl font-semibold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome back, {user?.full_name}
-        </p>
+        <h3 className="text-lg font-semibold mb-4">Overview</h3>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {userRole === "employee" && (
+            <>
+              <Card className="border-t-4 border-t-red-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Pending Tasks
+                  </CardTitle>
+                  <div className="p-2 bg-red-50 dark:bg-red-950 rounded">
+                    <FileText className="h-5 w-5 text-red-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {metrics.pendingTasks || 0}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-t-4 border-t-green-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Completed Tasks
+                  </CardTitle>
+                  <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
+                    <CheckSquare className="h-5 w-5 text-green-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {metrics.completedTasks || 0}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-t-4 border-t-orange-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Active Projects
+                  </CardTitle>
+                  <div className="p-2 bg-orange-50 dark:bg-orange-950 rounded">
+                    <Briefcase className="h-5 w-5 text-orange-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {metrics.activeProjects || 0}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-t-4 border-t-yellow-500">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Missing Reports
+                  </CardTitle>
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-950 rounded">
+                    <AlertCircle className="h-5 w-5 text-yellow-500" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {metrics.missingReports || 0}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {userRole === "project_manager" && (
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Active Projects
+                  </CardTitle>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {metrics.activeProjects || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Projects managing
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Completed Projects
+                  </CardTitle>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {metrics.completedProjects || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Projects completed
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Team Members
+                  </CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {metrics.teamMembers || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    People in your teams
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Pending Approvals
+                  </CardTitle>
+                  <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {metrics.pendingApprovals || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Requiring attention
+                  </p>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {userRole === "hr_executive" && (
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Pending Tasks
+                  </CardTitle>
+                  <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {metrics.pendingTasks || 5}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Completed Tasks
+                  </CardTitle>
+                  <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {metrics.completedTasks || 3}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Pending Tasks
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.pendingTasks}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Tasks due soon
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Completed Tasks
-            </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.completedTasks}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Tasks finished
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Projects
-            </CardTitle>
-            <FolderOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeProjects}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Projects in progress
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {user?.employee_role === "employee"
-                ? "Missing Reports"
-                : "Pending Approvals"}
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.missingReports}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {user?.employee_role === "employee"
-                ? "Reports to submit"
-                : "Requires action"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Recent Tasks</CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/tasks">
-                  View all
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {tasks.length === 0 ? (
-              <EmptyState
-                title="No tasks"
-                description="You don't have any tasks assigned"
-              />
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Task</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tasks.slice(0, 5).map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell className="font-medium">
-                        {task.description}
-                      </TableCell>
-                      <TableCell>{task.project_name || "-"}</TableCell>
-                      <TableCell>{formatDate(task.due_on)}</TableCell>
-                      <TableCell>
-                        <StatusBadge type="task" status={task.status} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {quickActions.map((action) => (
-              <Button
-                key={action.href}
-                variant="outline"
-                className="w-full justify-start"
-                asChild
-              >
-                <Link href={action.href}>
-                  <action.icon className="mr-2 h-4 w-4" />
-                  {action.label}
-                </Link>
-              </Button>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      {user?.employee_role === "employee" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>This Week</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-2xl font-bold">{metrics.weeklyHours}h</p>
-                  <p className="text-sm text-muted-foreground">Hours logged</p>
+      {/* Main Content Grid - Employee specific layout */}
+      {userRole === "employee" && (
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Left Column - Time Tracking & Weekly Report */}
+          <div className="space-y-6">
+            {/* Daily Work Log */}
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                <Calendar className="h-5 w-5 mr-2" />
+                <CardTitle className="text-base font-semibold">
+                  {formatDate(currentTime)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Project</label>
+                  <select className="w-full px-3 py-2 border rounded-md bg-background">
+                    <option>Project</option>
+                  </select>
                 </div>
-              </div>
-              <div className="flex-1" />
-              <Button variant="outline" asChild>
-                <Link href="/logs">Log Hours</Link>
-              </Button>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Hours</label>
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">04</div>
+                      <div className="text-xs text-muted-foreground">Hours</div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Minutes</label>
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">00</div>
+                      <div className="text-xs text-muted-foreground">Mins</div>
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full" size="lg">
+                  Log Work
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Submit Weekly Report */}
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                <FileText className="h-5 w-5 mr-2" />
+                <CardTitle className="text-base font-semibold">
+                  Submit Weekly Report
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Submit a consolidated report of your work across all projects
+                  this week
+                </p>
+                <Button variant="outline" className="w-full">
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                  Submit Report
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Last Submitted: January 6, 2026
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Tasks */}
+          <div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Tasks</CardTitle>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-primary"
+                  asChild
+                >
+                  <Link href="/tasks">View All</Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {recentTasks.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No tasks available
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-[auto,1fr,auto,auto] gap-4 pb-2 border-b text-xs font-medium text-muted-foreground">
+                      <div className="w-6"></div>
+                      <div>Task ↕</div>
+                      <div>Project Name ↕</div>
+                      <div>Deadline ↕</div>
+                      <div>Status ↕</div>
+                    </div>
+
+                    {/* Table Rows */}
+                    {recentTasks.slice(0, 6).map((task: any, idx: number) => (
+                      <div
+                        key={task.id || idx}
+                        className="grid grid-cols-[auto,1fr,auto,auto] gap-4 py-3 border-b last:border-0 items-center text-sm"
+                      >
+                        <Checkbox />
+                        <Link
+                          href={`/tasks/${task.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {task.task_name || "Task 1"}
+                        </Link>
+                        <div className="text-muted-foreground">
+                          {task.project_name || "Project Name"}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {task.end_date
+                            ? new Date(task.end_date).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )
+                            : "Dec 21"}
+                        </div>
+                        <StatusBadge status={task.status || "DUE"} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* PM and HR - Enhanced layouts */}
+      {userRole === "project_manager" && recentTasks.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Tasks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentTasks.map((task: any) => (
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between border-b pb-2 last:border-0"
+                >
+                  <div>
+                    <p className="font-medium">{task.task_name || "Task"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Due: {task.end_date || "No date"}
+                    </p>
+                  </div>
+                  <StatusBadge status={task.status} />
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* HR Dashboard Layout */}
+      {userRole === "hr_executive" && (
+        <div className="grid gap-6 md:grid-cols-[1fr_400px]">
+          {/* Left Column - Date/Report & Tasks */}
+          <div className="space-y-6">
+            {/* Daily Work Log */}
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                <Calendar className="h-5 w-5 mr-2" />
+                <CardTitle className="text-base font-semibold">
+                  {formatDate(currentTime)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Hours</label>
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">04</div>
+                      <div className="text-xs text-muted-foreground">Hours</div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Minutes</label>
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">00</div>
+                      <div className="text-xs text-muted-foreground">Mins</div>
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full" size="lg">
+                  Log Work
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Submit Weekly Report */}
+            <Card>
+              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                <FileText className="h-5 w-5 mr-2" />
+                <CardTitle className="text-base font-semibold">
+                  Submit Weekly Report
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Submit a consolidated report of your work across all projects
+                  this week
+                </p>
+                <Button variant="outline" className="w-full">
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                  Submit Report
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Last Submitted: January 6, 2026
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Tasks Section */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Tasks</CardTitle>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-primary"
+                  asChild
+                >
+                  <Link href="/tasks">View All</Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {recentTasks.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No tasks available
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-4 pb-2 border-b text-xs font-medium text-muted-foreground">
+                      <div className="w-6"></div>
+                      <div>Task ↕</div>
+                      <div>Project Name ↕</div>
+                      <div>Deadline ↕</div>
+                      <div>Status ↕</div>
+                    </div>
+
+                    {/* Table Rows */}
+                    {recentTasks.slice(0, 5).map((task: any, idx: number) => (
+                      <div
+                        key={task.id || idx}
+                        className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-4 py-3 border-b last:border-0 items-center text-sm"
+                      >
+                        <Checkbox />
+                        <Link
+                          href={`/tasks/${task.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {task.task_name || "Task 1"}
+                        </Link>
+                        <div className="text-muted-foreground">
+                          {task.project_name || "Project Name"}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {task.end_date
+                            ? new Date(task.end_date).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )
+                            : "Dec 21"}
+                        </div>
+                        <StatusBadge status={task.status || "DUE"} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Quick Actions */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-auto flex-col items-start p-4 gap-2"
+                    asChild
+                  >
+                    <Link href="/demands">
+                      <Users className="h-5 w-5" />
+                      <span className="text-sm font-medium">
+                        Request Resource
+                      </span>
+                    </Link>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-auto flex-col items-start p-4 gap-2"
+                    asChild
+                  >
+                    <Link href="/projects/new">
+                      <FolderPlus className="h-5 w-5" />
+                      <span className="text-sm font-medium">New Project</span>
+                    </Link>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-auto flex-col items-start p-4 gap-2"
+                    asChild
+                  >
+                    <Link href="/allocations/new">
+                      <ListChecks className="h-5 w-5" />
+                      <span className="text-sm font-medium">
+                        Create Allocation
+                      </span>
+                    </Link>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-auto flex-col items-start p-4 gap-2"
+                    asChild
+                  >
+                    <Link href="/demands">
+                      <Users className="h-5 w-5" />
+                      <span className="text-sm font-medium">
+                        Request Resource
+                      </span>
+                    </Link>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-auto flex-col items-start p-4 gap-2"
+                    asChild
+                  >
+                    <Link href="/employees/new">
+                      <UserPlus className="h-5 w-5" />
+                      <span className="text-sm font-medium">Add Employee</span>
+                    </Link>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="h-auto flex-col items-start p-4 gap-2"
+                    asChild
+                  >
+                    <Link href="/skills">
+                      <Settings className="h-5 w-5" />
+                      <span className="text-sm font-medium">Manage Skills</span>
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
     </div>
   );
