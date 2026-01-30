@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -21,8 +21,16 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { PaginationControls } from "@/components/pagination-controls";
+import { EmptyState } from "@/components/empty-state";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Calendar } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Calendar,
+  Search,
+  FileText,
+} from "lucide-react";
 import { LoadingPage } from "@/components/loading-spinner";
 
 interface AuditLog {
@@ -57,6 +65,10 @@ function AuditContent() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Search state
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Filters
   const [entityTypeFilter, setEntityTypeFilter] = useState<string | undefined>(
@@ -108,7 +120,19 @@ function AuditContent() {
     userFilter,
     startDateFilter,
     endDateFilter,
+    searchQuery,
   ]);
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+    setPage(1);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -128,6 +152,7 @@ function AuditContent() {
 
   const fetchAuditLogs = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("auth_token");
       const params = new URLSearchParams();
 
@@ -139,6 +164,7 @@ function AuditContent() {
       if (userFilter) params.append("changed_by", userFilter);
       if (startDateFilter) params.append("start_date", startDateFilter);
       if (endDateFilter) params.append("end_date", endDateFilter);
+      if (searchQuery) params.append("search", searchQuery);
 
       const response = await fetch(`/api/audit?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -188,6 +214,8 @@ function AuditContent() {
     setUserFilter(undefined);
     setStartDateFilter("");
     setEndDateFilter("");
+    setSearchInput("");
+    setSearchQuery("");
     setPage(1);
   };
 
@@ -198,7 +226,7 @@ function AuditContent() {
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-6 md:px-8 py-6">
           <div>
             <h1 className="text-3xl font-semibold">Audit Trail</h1>
             <p className="text-muted-foreground mt-1">
@@ -208,7 +236,7 @@ function AuditContent() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-8 py-8">
         <Card>
           <CardHeader>
             <CardTitle>System Audit Logs</CardTitle>
@@ -219,6 +247,21 @@ function AuditContent() {
           <CardContent className="space-y-6">
             {/* Filters */}
             <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Search by entity ID..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                  />
+                  <Button onClick={handleSearch} size="icon">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Entity Type</label>
@@ -362,9 +405,8 @@ function AuditContent() {
                       </tr>
                     ) : (
                       auditLogs.map((log) => (
-                        <>
+                        <React.Fragment key={log.id}>
                           <tr
-                            key={log.id}
                             className="border-b hover:bg-muted/30 cursor-pointer"
                             onClick={() => toggleRowExpansion(log.id)}
                           >
@@ -426,7 +468,7 @@ function AuditContent() {
                               </td>
                             </tr>
                           )}
-                        </>
+                        </React.Fragment>
                       ))
                     )}
                   </tbody>
@@ -435,31 +477,13 @@ function AuditContent() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Page {page} of {totalPages}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
+            <PaginationControls
+              currentPage={page}
+              pageSize={limit}
+              total={total}
+              onPageChange={setPage}
+              itemName="audit logs"
+            />
           </CardContent>
         </Card>
       </div>

@@ -19,10 +19,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DataTable, Column } from "@/components/data-table";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { PaginationControls } from "@/components/pagination-controls";
+import { EmptyState } from "@/components/empty-state";
 import { toast } from "sonner";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Search, FileText } from "lucide-react";
 import { LoadingPage } from "@/components/loading-spinner";
 
 interface Project {
@@ -57,6 +67,13 @@ function ProjectsListContent() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [total, setTotal] = useState(0);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<string | undefined>(
@@ -69,24 +86,29 @@ function ProjectsListContent() {
   const isHR = user?.employee_role === "hr_executive";
   const isPM = user?.employee_role === "project_manager";
 
+  // Reset to page 1 when filters or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, managerFilter, searchQuery]);
+
   useEffect(() => {
     fetchManagers();
+  }, []);
+
+  useEffect(() => {
     fetchProjects();
-  }, [statusFilter, managerFilter]);
+  }, [currentPage, statusFilter, managerFilter, searchQuery]);
 
   const fetchManagers = async () => {
     try {
       const token = localStorage.getItem("auth_token");
-      const response = await fetch("/api/employees", {
+      const response = await fetch("/api/employees?limit=1000&role=PM", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const data = await response.json();
-        const pmList = (data.employees || []).filter(
-          (emp: any) => emp.employee_role === "project_manager",
-        );
-        setManagers(pmList);
+        setManagers(data.employees || []);
       }
     } catch (error) {
       console.error("Error fetching managers:", error);
@@ -95,11 +117,21 @@ function ProjectsListContent() {
 
   const fetchProjects = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("auth_token");
+
+      if (!token) {
+        toast.error("Authentication required");
+        return;
+      }
+
       const params = new URLSearchParams();
 
       if (statusFilter) params.append("status", statusFilter);
       if (managerFilter) params.append("project_manager_id", managerFilter);
+      if (searchQuery) params.append("search", searchQuery);
+      params.append("page", currentPage.toString());
+      params.append("limit", pageSize.toString());
 
       const response = await fetch(`/api/projects?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -111,11 +143,22 @@ function ProjectsListContent() {
 
       const result = await response.json();
       setProjects(result.projects || []);
+      setTotal(result.total || 0);
     } catch (error) {
       console.error("Error fetching projects:", error);
       toast.error("Failed to load projects");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
     }
   };
 
@@ -144,39 +187,6 @@ function ProjectsListContent() {
     }
   };
 
-  const columns: Column<Project>[] = [
-    {
-      key: "project_code",
-      header: "Project Code",
-    },
-    {
-      key: "project_name",
-      header: "Project Name",
-    },
-    {
-      key: "client_name",
-      header: "Client",
-    },
-    {
-      key: "project_manager_name",
-      header: "Project Manager",
-    },
-    {
-      key: "status",
-      header: "Status",
-      render: (project) => (
-        <Badge variant={getStatusColor(project.status) as any}>
-          {project.status}
-        </Badge>
-      ),
-    },
-    {
-      key: "started_on",
-      header: "Started On",
-      render: (project) => new Date(project.started_on).toLocaleDateString(),
-    },
-  ];
-
   if (loading) {
     return <LoadingPage />;
   }
@@ -184,7 +194,7 @@ function ProjectsListContent() {
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-6 md:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-semibold">Projects</h1>
@@ -202,7 +212,7 @@ function ProjectsListContent() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 md:px-8 py-8">
         <Card>
           <CardHeader>
             <CardTitle>Projects List</CardTitle>
@@ -211,9 +221,26 @@ function ProjectsListContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+            {/* Filters - All in one line */}
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search */}
+              <div className="flex-1 space-y-2">
+                <label className="text-sm font-medium">Search</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Search by project name, code, or client..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                  />
+                  <Button onClick={handleSearch} size="icon">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Status Filter */}
+              <div className="w-full md:w-48 space-y-2">
                 <label className="text-sm font-medium">Status</label>
                 <Select
                   value={statusFilter}
@@ -235,7 +262,8 @@ function ProjectsListContent() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              {/* Project Manager Filter */}
+              <div className="w-full md:w-64 space-y-2">
                 <label className="text-sm font-medium">Project Manager</label>
                 <Select
                   value={managerFilter}
@@ -258,32 +286,83 @@ function ProjectsListContent() {
               </div>
             </div>
 
-            {/* Data Table */}
-            <DataTable
-              data={projects}
-              columns={columns}
-              searchPlaceholder="Search projects..."
-              searchKeys={["project_name", "project_code", "client_name"]}
-              onRowClick={handleRowClick}
-              actions={
-                isHR || isPM
-                  ? (project) => (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(project);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    )
-                  : undefined
-              }
-              emptyMessage="No projects found"
-              pageSize={20}
-            />
+            {/* Projects Table */}
+            {projects.length === 0 ? (
+              <EmptyState
+                icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+                title="No projects found"
+                description="Try adjusting your search criteria or create a new project"
+              />
+            ) : (
+              <>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Project Code</TableHead>
+                        <TableHead>Project Name</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Project Manager</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Started On</TableHead>
+                        {(isHR || isPM) && (
+                          <TableHead className="w-[50px]">Actions</TableHead>
+                        )}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {projects.map((project) => (
+                        <TableRow
+                          key={project.id}
+                          className="cursor-pointer"
+                          onClick={() => handleRowClick(project)}
+                        >
+                          <TableCell>{project.project_code}</TableCell>
+                          <TableCell>{project.project_name}</TableCell>
+                          <TableCell>{project.client_name}</TableCell>
+                          <TableCell>{project.project_manager_name}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={getStatusColor(project.status) as any}
+                            >
+                              {project.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {project.started_on
+                              ? new Date(
+                                  project.started_on,
+                                ).toLocaleDateString()
+                              : "Not set"}
+                          </TableCell>
+                          {(isHR || isPM) && (
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(project);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <PaginationControls
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  total={total}
+                  onPageChange={setCurrentPage}
+                  itemName="projects"
+                />
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
