@@ -58,9 +58,9 @@ export function AppSidebar() {
   // Show loading state
   if (isLoading) {
     return (
-      <Sidebar>
-        <SidebarHeader className="border-b px-6 py-4">
-          <h2 className="text-xl font-serif font-bold text-primary">ResFlow</h2>
+      <Sidebar className="border-r bg-sidebar">
+        <SidebarHeader className="border-b border-sidebar-border px-6 py-5">
+          <h2 className="text-xl font-bold text-sidebar-primary tracking-tight">ResFlow</h2>
         </SidebarHeader>
         <SidebarContent>
           <div className="flex items-center justify-center p-4">
@@ -73,9 +73,9 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b px-6 py-4">
-        <h2 className="text-xl font-serif font-bold text-primary">ResFlow</h2>
+    <Sidebar className="border-r bg-sidebar">
+      <SidebarHeader className="border-b border-sidebar-border px-6 py-5">
+        <h2 className="text-xl font-bold text-sidebar-primary tracking-tight">ResFlow</h2>
       </SidebarHeader>
 
       <SidebarContent className="px-2">

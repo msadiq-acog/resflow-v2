@@ -24,7 +24,7 @@ interface Employee {
 interface ExitEmployeeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  employee: Employee;
+  employee?: Employee;
   onSuccess: () => void;
 }
 
@@ -43,6 +43,11 @@ export function ExitEmployeeModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!employee) {
+      setError("No employee selected");
+      return;
+    }
 
     if (!exitDate) {
       setError("Exit date is required");
@@ -106,8 +111,10 @@ export function ExitEmployeeModal({
           <DialogHeader>
             <DialogTitle>Exit Employee</DialogTitle>
             <DialogDescription>
-              Mark {employee.full_name} ({employee.employee_code}) as exited
-              from the organization
+              {employee 
+                ? `Mark ${employee.full_name} (${employee.employee_code}) as exited from the organization`
+                : "No employee selected"
+              }
             </DialogDescription>
           </DialogHeader>
 
@@ -122,7 +129,7 @@ export function ExitEmployeeModal({
                 value={exitDate}
                 onChange={(e) => setExitDate(e.target.value)}
                 max={new Date().toISOString().split("T")[0]}
-                disabled={loading}
+                disabled={loading || !employee}
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
               <p className="text-xs text-muted-foreground">
@@ -141,7 +148,11 @@ export function ExitEmployeeModal({
             >
               Cancel
             </Button>
-            <Button type="submit" variant="destructive" disabled={loading}>
+            <Button 
+              type="submit" 
+              variant="destructive" 
+              disabled={loading || !employee}
+            >
               {loading && <LoadingSpinner className="mr-2" />}
               Exit Employee
             </Button>

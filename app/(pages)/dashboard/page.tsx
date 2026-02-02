@@ -130,7 +130,7 @@ export default function DashboardPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <LoadingSpinner />
       </div>
     );
@@ -166,91 +166,118 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex-1 space-y-6 p-6 md:p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">
-          {userRole === "employee" && "Employee Dashboard"}
-          {userRole === "project_manager" && "Project Manager Dashboard"}
-          {userRole === "hr_executive" && "HR Dashboard"}
-        </h2>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="max-w-[1600px] mx-auto p-6 min-w-0">
+        {/* Modern Grid Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* Left Column - Welcome & Metrics */}
+          <div className="xl:col-span-4 space-y-6">
+            {/* Modern Welcome Section */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-6 shadow-2xl">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              
+              <div className="relative z-10 flex flex-col gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1">
+                    Welcome back, {user?.full_name?.split(' ')[0] || 'User'}
+                  </h1>
+                  <div className="flex items-center gap-2 text-white/90">
+                    <Calendar className="h-4 w-4" />
+                    <p className="text-sm font-medium">
+                      {formatDate(currentTime)} • {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      {/* Error Alert (if any) */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Overview Section */}
-      <div>
-        <h3 className="text-lg font-semibold mb-6">Overview</h3>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {/* Metrics Overview */}
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold">Overview</h2>
+                <p className="text-muted-foreground text-sm mt-1">Your key metrics at a glance</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
           {userRole === "employee" && (
             <>
-              <Card className="border-t-4 border-t-red-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-rose-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Pending Tasks
                   </CardTitle>
-                  <div className="p-2 bg-red-50 dark:bg-red-950 rounded">
-                    <FileText className="h-5 w-5 text-red-500" />
+                  <div className="rounded-xl bg-rose-500/10 p-2.5 ring-2 ring-rose-500/20">
+                    <FileText className="h-5 w-5 text-rose-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.pendingTasks || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Requires attention
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-t-4 border-t-green-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-emerald-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Completed Tasks
                   </CardTitle>
-                  <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
-                    <CheckSquare className="h-5 w-5 text-green-500" />
+                  <div className="rounded-xl bg-emerald-500/10 p-2.5 ring-2 ring-emerald-500/20">
+                    <CheckSquare className="h-5 w-5 text-emerald-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.completedTasks || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Successfully done
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-t-4 border-t-orange-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-blue-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Active Projects
                   </CardTitle>
-                  <div className="p-2 bg-orange-50 dark:bg-orange-950 rounded">
-                    <Briefcase className="h-5 w-5 text-orange-500" />
+                  <div className="rounded-xl bg-blue-500/10 p-2.5 ring-2 ring-blue-500/20">
+                    <Briefcase className="h-5 w-5 text-blue-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.activeProjects || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Currently working on
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-t-4 border-t-purple-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-violet-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Weekly Hours
                   </CardTitle>
-                  <div className="p-2 bg-purple-50 dark:bg-purple-950 rounded">
-                    <Clock className="h-5 w-5 text-purple-500" />
+                  <div className="rounded-xl bg-violet-500/10 p-2.5 ring-2 ring-violet-500/20">
+                    <Clock className="h-5 w-5 text-violet-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.weeklyHours || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Hours logged
+                  </p>
                 </CardContent>
               </Card>
             </>
@@ -258,67 +285,83 @@ export default function DashboardPage() {
 
           {userRole === "project_manager" && (
             <>
-              <Card className="border-t-4 border-t-blue-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-primary/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Pending Tasks
                   </CardTitle>
-                  <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded">
-                    <CheckSquare className="h-5 w-5 text-blue-500" />
+                  <div className="rounded-xl bg-primary/10 p-2.5 ring-2 ring-primary/20">
+                    <CheckSquare className="h-5 w-5 text-primary" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.pendingTasks || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Requires attention
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-t-4 border-t-green-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-emerald-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Completed Tasks
                   </CardTitle>
-                  <div className="p-2 bg-green-50 dark:bg-green-950 rounded">
-                    <CheckSquare className="h-5 w-5 text-green-500" />
+                  <div className="rounded-xl bg-emerald-500/10 p-2.5 ring-2 ring-emerald-500/20">
+                    <CheckSquare className="h-5 w-5 text-emerald-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.completedTasks || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Successfully done
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-t-4 border-t-orange-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-amber-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Active Projects
                   </CardTitle>
-                  <div className="p-2 bg-orange-50 dark:bg-orange-950 rounded">
-                    <Briefcase className="h-5 w-5 text-orange-500" />
+                  <div className="rounded-xl bg-amber-500/10 p-2.5 ring-2 ring-amber-500/20">
+                    <Briefcase className="h-5 w-5 text-amber-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.activeProjects || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Currently working on
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-t-4 border-t-purple-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-violet-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Weekly Hours
                   </CardTitle>
-                  <div className="p-2 bg-purple-50 dark:bg-purple-950 rounded">
-                    <Clock className="h-5 w-5 text-purple-500" />
+                  <div className="rounded-xl bg-violet-500/10 p-2.5 ring-2 ring-violet-500/20">
+                    <Clock className="h-5 w-5 text-violet-500" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.weeklyHours || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Hours logged
+                  </p>
                 </CardContent>
               </Card>
             </>
@@ -326,31 +369,43 @@ export default function DashboardPage() {
 
           {userRole === "hr_executive" && (
             <>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-primary/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Pending Tasks
                   </CardTitle>
-                  <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                  <div className="rounded-xl bg-primary/10 p-2.5 ring-2 ring-primary/20">
+                    <CheckSquare className="h-5 w-5 text-primary" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.pendingTasks || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Requires attention
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+              <Card className="group relative overflow-hidden border-none shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-card to-card/50">
+                <div className="absolute right-0 top-0 h-32 w-32 translate-x-12 -translate-y-12 rounded-full bg-emerald-500/10" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                     Completed Tasks
                   </CardTitle>
-                  <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                  <div className="rounded-xl bg-emerald-500/10 p-2.5 ring-2 ring-emerald-500/20">
+                    <CheckSquare className="h-5 w-5 text-emerald-500" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-3xl font-bold text-foreground mb-1">
                     {metrics.completedTasks || 0}
                   </div>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Successfully done
+                  </p>
                 </CardContent>
               </Card>
             </>
@@ -358,490 +413,570 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Main Content Grid - Employee specific layout */}
-      {userRole === "employee" && (
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Left Column - Time Tracking & Weekly Report */}
+        {/* Main Content Grid - Employee specific layout */}
+        {userRole === "employee" && (
           <div className="space-y-6">
-            {/* Daily Work Log - Navigation Card */}
-            <Card
-              className="hover:shadow-md transition-shadow cursor-pointer border-primary/20"
-              onClick={() => router.push("/logs/new")}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  <CardTitle className="text-base font-semibold">
-                    Log Daily Work
-                  </CardTitle>
-                </div>
-                <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Record your daily work hours across multiple projects
-                </p>
-                <Button
-                  className="w-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push("/logs/new");
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Work Log
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Submit Weekly Report */}
-            <Card>
-              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
-                <FileText className="h-5 w-5 mr-2" />
-                <CardTitle className="text-base font-semibold">
-                  Submit Weekly Report
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Submit a consolidated report of your work across all projects
-                  this week
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => router.push("/reports/new")}
-                >
-                  <ArrowUpRight className="h-4 w-4 mr-2" />
-                  Submit Report
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Last Submitted: January 6, 2026
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Tasks */}
-          <div>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Tasks</CardTitle>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-primary"
-                  asChild
-                >
-                  <Link href="/tasks">View All</Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {recentTasks.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No tasks available
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {recentTasks.slice(0, 6).map((task: any, idx: number) => (
-                      <div
-                        key={task.id || idx}
-                        className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                      >
-                        <Checkbox className="mt-0.5" />
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <Link
-                            href={`/tasks/${task.id}`}
-                            className="text-sm font-medium text-primary hover:underline line-clamp-2"
-                          >
-                            {task.description || "No description"}
-                          </Link>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {task.due_on
-                                ? new Date(task.due_on).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "numeric",
-                                    },
-                                  )
-                                : "No date"}
-                            </div>
-                          </div>
-                        </div>
-                        <StatusBadge status={task.status || "DUE"} />
+            {/* Left Column - Time Tracking & Weekly Report */}
+            <div className="space-y-6">
+              {/* Daily Work Log - Navigation Card */}
+              <Card
+                className="hover:shadow-xl transition-all duration-300 cursor-pointer border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden group"
+                onClick={() => router.push("/logs/new")}
+              >
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center ring-2 ring-primary/10">
+                        <FileText className="h-5 w-5 text-primary" />
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* PM Dashboard Layout */}
-      {userRole === "project_manager" && (
-        <div className="grid gap-6 md:grid-cols-[1fr_350px]">
-          {/* Left Column - Time Tracking, Weekly Report & Tasks */}
-          <div className="space-y-6">
-            {/* Daily Work Log - Navigation Card */}
-            <Card
-              className="hover:shadow-md transition-shadow cursor-pointer border-primary/20"
-              onClick={() => router.push("/logs/new")}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  <CardTitle className="text-base font-semibold">
-                    Log Daily Work
-                  </CardTitle>
+                      <CardTitle className="text-xl font-bold">
+                        Log Daily Work
+                      </CardTitle>
+                    </div>
+                    <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </CardHeader>
                 </div>
-                <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Record your daily work hours across multiple projects
-                </p>
-                <Button
-                  className="w-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push("/logs/new");
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Work Log
-                </Button>
-              </CardContent>
-            </Card>
+                <CardContent className="p-6 space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Record your daily work hours across multiple projects
+                  </p>
+                  <Button
+                    className="w-full shadow-md hover:shadow-lg transition-shadow"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push("/logs/new");
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Work Log
+                  </Button>
+                </CardContent>
+              </Card>
 
-            {/* Submit Weekly Report */}
-            <Card>
-              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
-                <FileText className="h-5 w-5 mr-2" />
-                <CardTitle className="text-base font-semibold">
-                  Submit Weekly Report
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Submit a consolidated report of your work across all projects
-                  this week
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => router.push("/reports/new")}
-                >
-                  <ArrowUpRight className="h-4 w-4 mr-2" />
-                  Submit Report
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Last Submitted: January 6, 2026
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Tasks Section */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Tasks</CardTitle>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-primary"
-                  asChild
-                >
-                  <Link href="/tasks">View All</Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {recentTasks.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No tasks available
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {recentTasks.slice(0, 6).map((task: any, idx: number) => (
-                      <div
-                        key={task.id || idx}
-                        className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                      >
-                        <Checkbox className="mt-0.5" />
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <Link
-                            href={`/tasks/${task.id}`}
-                            className="text-sm font-medium text-primary hover:underline line-clamp-2"
-                          >
-                            {task.description || "No description"}
-                          </Link>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {task.due_on
-                                ? new Date(task.due_on).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "numeric",
-                                    },
-                                  )
-                                : "No date"}
-                            </div>
-                          </div>
-                        </div>
-                        <StatusBadge status={task.status || "DUE"} />
+              {/* Submit Weekly Report */}
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-violet-500/10 via-violet-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center space-y-0 pb-4 p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-violet-500/20 flex items-center justify-center ring-2 ring-violet-500/10">
+                        <FileText className="h-5 w-5 text-violet-600" />
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Quick Actions */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/logs/new">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Log Work
-                    </Link>
-                  </Button>
-
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/reports/new">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Submit Report
-                    </Link>
-                  </Button>
-
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/demands/new">
-                      <Users className="h-4 w-4 mr-2" />
-                      Request Resource
-                    </Link>
-                  </Button>
+                      <CardTitle className="text-xl font-bold">
+                        Submit Weekly Report
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* HR Dashboard Layout */}
-      {userRole === "hr_executive" && (
-        <div className="grid gap-6 md:grid-cols-[1fr_400px]">
-          {/* Left Column - Date/Report & Tasks */}
-          <div className="space-y-6">
-            {/* Daily Work Log - Navigation Card */}
-            <Card
-              className="hover:shadow-md transition-shadow cursor-pointer border-primary/20"
-              onClick={() => router.push("/logs/new")}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  <CardTitle className="text-base font-semibold">
-                    Log Daily Work
-                  </CardTitle>
-                </div>
-                <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Record your daily work hours across multiple projects
-                </p>
-                <Button
-                  className="w-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push("/logs/new");
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Work Log
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Submit Weekly Report */}
-            <Card>
-              <CardHeader className="flex flex-row items-center space-y-0 pb-4">
-                <FileText className="h-5 w-5 mr-2" />
-                <CardTitle className="text-base font-semibold">
-                  Submit Weekly Report
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Submit a consolidated report of your work across all projects
-                  this week
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => router.push("/reports/new")}
-                >
-                  <ArrowUpRight className="h-4 w-4 mr-2" />
-                  Submit Report
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Last Submitted: January 6, 2026
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Tasks Section */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Tasks</CardTitle>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-primary"
-                  asChild
-                >
-                  <Link href="/tasks">View All</Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {recentTasks.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No tasks available
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {recentTasks.slice(0, 5).map((task: any, idx: number) => (
-                      <div
-                        key={task.id || idx}
-                        className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                      >
-                        <Checkbox className="mt-0.5" />
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <Link
-                            href={`/tasks/${task.id}`}
-                            className="text-sm font-medium text-primary hover:underline line-clamp-2"
-                          >
-                            {task.description || "No description"}
-                          </Link>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {task.due_on
-                                ? new Date(task.due_on).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      month: "short",
-                                      day: "numeric",
-                                    },
-                                  )
-                                : "No date"}
-                            </div>
-                          </div>
-                        </div>
-                        <StatusBadge status={task.status || "DUE"} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Quick Actions */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+                <CardContent className="p-6 space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Submit a consolidated report of your work across all projects
+                    this week
+                  </p>
                   <Button
                     variant="outline"
-                    className="h-auto flex-col items-start p-4 gap-2"
-                    asChild
+                    className="w-full shadow-sm hover:shadow-md transition-shadow"
+                    onClick={() => router.push("/reports/new")}
                   >
-                    <Link href="/demands">
-                      <Users className="h-5 w-5" />
-                      <span className="text-sm font-medium">
+                    <ArrowUpRight className="h-4 w-4 mr-2" />
+                    Submit Report
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Last Submitted: January 6, 2026
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Tasks */}
+            <div>
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center justify-between p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center ring-2 ring-emerald-500/10">
+                        <CheckSquare className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Tasks
+                      </CardTitle>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/tasks">View All</Link>
+                    </Button>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6">
+                  {recentTasks.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No tasks available
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentTasks.slice(0, 6).map((task: any, idx: number) => (
+                        <div
+                          key={task.id || idx}
+                          className="flex items-start gap-4 p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors group"
+                        >
+                          <Checkbox className="mt-0.5" />
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <Link
+                              href={`/tasks/${task.id}`}
+                              className="text-sm font-semibold text-primary hover:underline line-clamp-2 group-hover:text-primary/90 transition-colors"
+                            >
+                              {task.description || "No description"}
+                            </Link>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5" />
+                                {task.due_on
+                                  ? new Date(task.due_on).toLocaleDateString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                        day: "numeric",
+                                      },
+                                    )
+                                  : "No date"}
+                              </div>
+                            </div>
+                          </div>
+                          <StatusBadge status={task.status || "DUE"} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* PM Dashboard Layout */}
+        {userRole === "project_manager" && (
+          <div className="space-y-6">
+            {/* Left Column - Time Tracking, Weekly Report & Tasks */}
+            <div className="space-y-6">
+              {/* Daily Work Log - Navigation Card */}
+              <Card
+                className="hover:shadow-xl transition-shadow cursor-pointer border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden group"
+                onClick={() => router.push("/logs/new")}
+              >
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center ring-2 ring-primary/10">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Log Daily Work
+                      </CardTitle>
+                    </div>
+                    <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6 space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Record your daily work hours across multiple projects
+                  </p>
+                  <Button
+                    className="w-full shadow-md hover:shadow-lg transition-shadow"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push("/logs/new");
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Work Log
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Submit Weekly Report */}
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-violet-500/10 via-violet-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center space-y-0 pb-4 p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-violet-500/20 flex items-center justify-center ring-2 ring-violet-500/10">
+                        <FileText className="h-5 w-5 text-violet-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Submit Weekly Report
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6 space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Submit a consolidated report of your work across all projects
+                    this week
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full shadow-sm hover:shadow-md transition-shadow"
+                    onClick={() => router.push("/reports/new")}
+                  >
+                    <ArrowUpRight className="h-4 w-4 mr-2" />
+                    Submit Report
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Last Submitted: January 6, 2026
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Tasks Section */}
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center justify-between p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center ring-2 ring-emerald-500/10">
+                        <CheckSquare className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Tasks
+                      </CardTitle>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/tasks">View All</Link>
+                    </Button>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6">
+                  {recentTasks.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No tasks available
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentTasks.slice(0, 6).map((task: any, idx: number) => (
+                        <div
+                          key={task.id || idx}
+                          className="flex items-start gap-4 p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors group"
+                        >
+                          <Checkbox className="mt-0.5" />
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <Link
+                              href={`/tasks/${task.id}`}
+                              className="text-sm font-semibold text-primary hover:underline line-clamp-2 group-hover:text-primary/90 transition-colors"
+                            >
+                              {task.description || "No description"}
+                            </Link>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5" />
+                                {task.due_on
+                                  ? new Date(task.due_on).toLocaleDateString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                        day: "numeric",
+                                      },
+                                    )
+                                  : "No date"}
+                              </div>
+                            </div>
+                          </div>
+                          <StatusBadge status={task.status || "DUE"} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Quick Actions */}
+            <div>
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center ring-2 ring-amber-500/10">
+                        <Settings className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Quick Actions
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6">
+                  <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow" asChild>
+                      <Link href="/logs/new">
+                        <Clock className="h-4 w-4 mr-2" />
+                        Log Work
+                      </Link>
+                    </Button>
+
+                    <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow" asChild>
+                      <Link href="/reports/new">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Submit Report
+                      </Link>
+                    </Button>
+
+                    <Button variant="outline" size="sm" className="shadow-sm hover:shadow-md transition-shadow" asChild>
+                      <Link href="/demands/new">
+                        <Users className="h-4 w-4 mr-2" />
                         Request Resource
-                      </span>
-                    </Link>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="h-auto flex-col items-start p-4 gap-2"
-                    asChild
-                  >
-                    <Link href="/projects/new">
-                      <FolderPlus className="h-5 w-5" />
-                      <span className="text-sm font-medium">New Project</span>
-                    </Link>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="h-auto flex-col items-start p-4 gap-2"
-                    asChild
-                  >
-                    <Link href="/allocations/new">
-                      <ListChecks className="h-5 w-5" />
-                      <span className="text-sm font-medium">
-                        Create Allocation
-                      </span>
-                    </Link>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="h-auto flex-col items-start p-4 gap-2"
-                    asChild
-                  >
-                    <Link href="/demands">
-                      <Users className="h-5 w-5" />
-                      <span className="text-sm font-medium">
-                        Request Resource
-                      </span>
-                    </Link>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="h-auto flex-col items-start p-4 gap-2"
-                    asChild
-                  >
-                    <Link href="/employees/new">
-                      <UserPlus className="h-5 w-5" />
-                      <span className="text-sm font-medium">Add Employee</span>
-                    </Link>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="h-auto flex-col items-start p-4 gap-2"
-                    asChild
-                  >
-                    <Link href="/skills">
-                      <Settings className="h-5 w-5" />
-                      <span className="text-sm font-medium">Manage Skills</span>
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* HR Dashboard Layout */}
+        {userRole === "hr_executive" && (
+          <div className="space-y-6">
+            {/* Left Column - Date/Report & Tasks */}
+            <div className="space-y-6">
+              {/* Daily Work Log - Navigation Card */}
+              <Card
+                className="hover:shadow-xl transition-shadow cursor-pointer border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden group"
+                onClick={() => router.push("/logs/new")}
+              >
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center ring-2 ring-primary/10">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Log Daily Work
+                      </CardTitle>
+                    </div>
+                    <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6 space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Record your daily work hours across multiple projects
+                  </p>
+                  <Button
+                    className="w-full shadow-md hover:shadow-lg transition-shadow"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push("/logs/new");
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Work Log
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Submit Weekly Report */}
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-violet-500/10 via-violet-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center space-y-0 pb-4 p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-violet-500/20 flex items-center justify-center ring-2 ring-violet-500/10">
+                        <FileText className="h-5 w-5 text-violet-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Submit Weekly Report
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6 space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Submit a consolidated report of your work across all projects
+                    this week
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full shadow-sm hover:shadow-md transition-shadow"
+                    onClick={() => router.push("/reports/new")}
+                  >
+                    <ArrowUpRight className="h-4 w-4 mr-2" />
+                    Submit Report
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Last Submitted: January 6, 2026
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Tasks Section */}
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="flex flex-row items-center justify-between p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center ring-2 ring-emerald-500/10">
+                        <CheckSquare className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Tasks
+                      </CardTitle>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/tasks">View All</Link>
+                    </Button>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6">
+                  {recentTasks.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No tasks available
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentTasks.slice(0, 5).map((task: any, idx: number) => (
+                        <div
+                          key={task.id || idx}
+                          className="flex items-start gap-4 p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors group"
+                        >
+                          <Checkbox className="mt-0.5" />
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <Link
+                              href={`/tasks/${task.id}`}
+                              className="text-sm font-semibold text-primary hover:underline line-clamp-2 group-hover:text-primary/90 transition-colors"
+                            >
+                              {task.description || "No description"}
+                            </Link>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5" />
+                                {task.due_on
+                                  ? new Date(task.due_on).toLocaleDateString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                        day: "numeric",
+                                      },
+                                    )
+                                  : "No date"}
+                              </div>
+                            </div>
+                          </div>
+                          <StatusBadge status={task.status || "DUE"} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Quick Actions */}
+            <div>
+              <Card className="border-none shadow-lg bg-gradient-to-br from-card to-card/50 overflow-hidden">
+                <div className="bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent p-5 border-b">
+                  <CardHeader className="p-0">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-rose-500/20 flex items-center justify-center ring-2 ring-rose-500/10">
+                        <Settings className="h-5 w-5 text-rose-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold">
+                        Quick Actions
+                      </CardTitle>
+                    </div>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      className="h-auto flex-col items-start p-4 gap-2 shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/demands">
+                        <Users className="h-5 w-5" />
+                        <span className="text-sm font-semibold">
+                          Request Resource
+                        </span>
+                      </Link>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="h-auto flex-col items-start p-4 gap-2 shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/projects/new">
+                        <FolderPlus className="h-5 w-5" />
+                        <span className="text-sm font-semibold">New Project</span>
+                      </Link>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="h-auto flex-col items-start p-4 gap-2 shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/allocations/new">
+                        <ListChecks className="h-5 w-5" />
+                        <span className="text-sm font-semibold">
+                          Create Allocation
+                        </span>
+                      </Link>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="h-auto flex-col items-start p-4 gap-2 shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/demands">
+                        <Users className="h-5 w-5" />
+                        <span className="text-sm font-semibold">
+                          Request Resource
+                        </span>
+                      </Link>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="h-auto flex-col items-start p-4 gap-2 shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/employees/new">
+                        <UserPlus className="h-5 w-5" />
+                        <span className="text-sm font-semibold">Add Employee</span>
+                      </Link>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="h-auto flex-col items-start p-4 gap-2 shadow-sm hover:shadow-md transition-shadow"
+                      asChild
+                    >
+                      <Link href="/skills">
+                        <Settings className="h-5 w-5" />
+                        <span className="text-sm font-semibold">Manage Skills</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+      </div>
     </div>
   );
 }

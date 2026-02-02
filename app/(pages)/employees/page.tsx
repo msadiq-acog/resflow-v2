@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { ProtectedRoute } from "@/components/protected-route";
 import {
   Card,
   CardContent,
@@ -32,7 +31,7 @@ import { ExitEmployeeModal } from "@/components/forms/exit-employee-modal";
 import { Badge } from "@/components/ui/badge";
 import { PaginationControls } from "@/components/pagination-controls";
 import { toast } from "sonner";
-import { Plus, Pencil, LogOut, Search } from "lucide-react";
+import { Plus, Pencil, LogOut, Search, Users } from "lucide-react";
 import { LoadingPage } from "@/components/loading-spinner";
 
 interface Employee {
@@ -62,11 +61,7 @@ interface Column<T> {
 }
 
 export default function EmployeesListPage() {
-  return (
-    <ProtectedRoute>
-      <EmployeesListContent />
-    </ProtectedRoute>
-  );
+  return <EmployeesListContent />;
 }
 
 function EmployeesListContent() {
@@ -232,7 +227,7 @@ function EmployeesListContent() {
         key: "status",
         header: "Status",
         render: (emp: Employee) => (
-          <Badge variant={emp.status === "ACTIVE" ? "default" : "secondary"}>
+          <Badge variant={emp.status === "ACTIVE" ? "success" : "secondary"}>
             {emp.status}
           </Badge>
         ),
@@ -274,35 +269,74 @@ function EmployeesListContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="container mx-auto px-6 md:px-8 py-6">
-          <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Stats Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="group relative overflow-hidden border-l-4 border-l-primary hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-primary/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{total}</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="group relative overflow-hidden border-l-4 border-l-emerald-500 hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-500/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {employees.filter(e => e.status === 'ACTIVE').length}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="group relative overflow-hidden border-l-4 border-l-amber-500 hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-500/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="group relative overflow-hidden border-l-4 border-l-violet-500 hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-violet-500/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">0</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-semibold">Employees</h1>
-              <p className="text-muted-foreground mt-1">
-                Manage employee profiles and information
-              </p>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Employee Directory
+              </CardTitle>
+              <CardDescription>
+                View and manage all employees in the organization
+              </CardDescription>
             </div>
             {isHR && (
-              <Button onClick={() => router.push("/employees/new")}>
+              <Button onClick={() => router.push("/employees/new")} className="whitespace-nowrap">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Employee
               </Button>
             )}
           </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 md:px-8 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Employee Directory</CardTitle>
-            <CardDescription>
-              View and manage all employees in the organization
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        </CardHeader>
+        <CardContent className="space-y-6">
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="space-y-2 md:col-span-2">
@@ -483,17 +517,16 @@ function EmployeesListContent() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Exit Employee Modal */}
-      {selectedEmployee && (
-        <ExitEmployeeModal
-          open={exitModalOpen}
-          onOpenChange={setExitModalOpen}
-          employee={selectedEmployee}
-          onSuccess={handleExitSuccess}
-        />
-      )}
-    </div>
-  );
-}
+        {/* Exit Employee Modal */}
+        {selectedEmployee && (
+          <ExitEmployeeModal
+            open={exitModalOpen}
+            onOpenChange={setExitModalOpen}
+            employee={selectedEmployee || undefined}
+            onSuccess={handleExitSuccess}
+          />
+        )}
+      </div>
+    );
+  }

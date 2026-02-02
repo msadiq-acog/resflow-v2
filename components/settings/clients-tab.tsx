@@ -84,7 +84,7 @@ export function ClientsTab() {
   }
 
   return (
-    <>
+    <div className="w-full max-w-full">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -114,6 +114,6 @@ export function ClientsTab() {
         onOpenChange={setModalOpen}
         onSuccess={handleSuccess}
       />
-    </>
+    </div>
   );
 }

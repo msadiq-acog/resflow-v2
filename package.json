@@ -6,7 +6,10 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "db:backup": "bash scripts/backup.sh",
+    "db:restore": "bash scripts/recovery.sh",
+    "db:restore:backup": "bash scripts/recovery.sh backups/full_backup_*.sql"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

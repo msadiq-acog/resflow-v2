@@ -173,13 +173,13 @@ function ProjectsListContent() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return "default";
+        return "success";
       case "DRAFT":
         return "secondary";
       case "ON_HOLD":
-        return "outline";
+        return "warning";
       case "COMPLETED":
-        return "default";
+        return "info";
       case "CANCELLED":
         return "destructive";
       default:
@@ -192,121 +192,176 @@ function ProjectsListContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="container mx-auto px-6 md:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-semibold">Projects</h1>
-              <p className="text-muted-foreground mt-1">
-                Manage projects and track progress
-              </p>
-            </div>
-            {isHR && (
-              <Button onClick={() => router.push("/projects/new")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Project
-              </Button>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Manage projects and track progress
+          </p>
         </div>
+        {isHR && (
+          <Button onClick={() => router.push("/projects/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Project
+          </Button>
+        )}
       </div>
 
-      <div className="container mx-auto px-6 md:px-8 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Projects List</CardTitle>
-            <CardDescription>
-              View and manage all projects in the organization
-            </CardDescription>
+      {/* Stats Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="group relative overflow-hidden border-l-4 border-l-blue-500 hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-500/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Filters - All in one line */}
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1 space-y-2">
-                <label className="text-sm font-medium">Search</label>
-                <div className="flex gap-2">
+          <CardContent>
+            <div className="text-2xl font-bold">{total}</div>
+            <p className="text-xs text-muted-foreground mt-1">All projects</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="group relative overflow-hidden border-l-4 border-l-emerald-500 hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-500/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {projects.filter(p => p.status === 'ACTIVE').length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">In progress</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="group relative overflow-hidden border-l-4 border-l-violet-500 hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-violet-500/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {projects.filter(p => p.status === 'COMPLETED').length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Finished successfully</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="group relative overflow-hidden border-l-4 border-l-amber-500 hover:shadow-lg transition-all">
+          <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-500/10" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">On Hold</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {projects.filter(p => p.status === 'ON_HOLD').length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Temporarily paused</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Projects Directory</CardTitle>
+          <CardDescription>
+            View and manage all projects in the organization
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            {/* Search */}
+            <div className="md:col-span-5 space-y-2">
+              <label className="text-sm font-medium">Search</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by project name, code, or client..."
+                    placeholder="Search projects..."
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyPress={handleKeyPress}
+                    className="pl-10"
                   />
-                  <Button onClick={handleSearch} size="icon">
-                    <Search className="h-4 w-4" />
-                  </Button>
                 </div>
-              </div>
-
-              {/* Status Filter */}
-              <div className="w-full md:w-48 space-y-2">
-                <label className="text-sm font-medium">Status</label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) =>
-                    setStatusFilter(value === "all" ? undefined : value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="DRAFT">Draft</SelectItem>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="ON_HOLD">On Hold</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Project Manager Filter */}
-              <div className="w-full md:w-64 space-y-2">
-                <label className="text-sm font-medium">Project Manager</label>
-                <Select
-                  value={managerFilter}
-                  onValueChange={(value) =>
-                    setManagerFilter(value === "all" ? undefined : value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All managers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Managers</SelectItem>
-                    {managers.map((manager) => (
-                      <SelectItem key={manager.id} value={manager.id}>
-                        {manager.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Button onClick={handleSearch} size="default">
+                  Search
+                </Button>
               </div>
             </div>
 
-            {/* Projects Table */}
-            {projects.length === 0 ? (
-              <EmptyState
-                icon={<FileText className="h-10 w-10 text-muted-foreground" />}
-                title="No projects found"
-                description="Try adjusting your search criteria or create a new project"
-              />
-            ) : (
-              <>
-                <div className="rounded-md border">
+            {/* Status Filter */}
+            <div className="md:col-span-3 space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value === "all" ? undefined : value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Project Manager Filter */}
+            <div className="md:col-span-4 space-y-2">
+              <label className="text-sm font-medium">Project Manager</label>
+              <Select
+                value={managerFilter}
+                onValueChange={(value) =>
+                  setManagerFilter(value === "all" ? undefined : value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All managers" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Managers</SelectItem>
+                  {managers.map((manager) => (
+                    <SelectItem key={manager.id} value={manager.id}>
+                      {manager.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Projects Table */}
+          {projects.length === 0 ? (
+            <EmptyState
+              icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+              title="No projects found"
+              description="Try adjusting your search criteria or create a new project"
+            />
+          ) : (
+            <>
+              <div className="border rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Project Code</TableHead>
-                        <TableHead>Project Name</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Project Manager</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Started On</TableHead>
+                        <TableHead className="min-w-[120px]">Project Code</TableHead>
+                        <TableHead className="min-w-[200px]">Project Name</TableHead>
+                        <TableHead className="min-w-[150px]">Client</TableHead>
+                        <TableHead className="min-w-[150px]">Project Manager</TableHead>
+                        <TableHead className="min-w-[100px]">Status</TableHead>
+                        <TableHead className="min-w-[120px]">Started On</TableHead>
                         {(isHR || isPM) && (
-                          <TableHead className="w-[50px]">Actions</TableHead>
+                          <TableHead className="w-[80px]">Actions</TableHead>
                         )}
                       </TableRow>
                     </TableHeader>
@@ -314,10 +369,10 @@ function ProjectsListContent() {
                       {projects.map((project) => (
                         <TableRow
                           key={project.id}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-accent/50"
                           onClick={() => handleRowClick(project)}
                         >
-                          <TableCell>{project.project_code}</TableCell>
+                          <TableCell className="font-medium">{project.project_code}</TableCell>
                           <TableCell>{project.project_name}</TableCell>
                           <TableCell>{project.client_name}</TableCell>
                           <TableCell>{project.project_manager_name}</TableCell>
@@ -354,18 +409,18 @@ function ProjectsListContent() {
                     </TableBody>
                   </Table>
                 </div>
-                <PaginationControls
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                  total={total}
-                  onPageChange={setCurrentPage}
-                  itemName="projects"
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+              <PaginationControls
+                currentPage={currentPage}
+                pageSize={pageSize}
+                total={total}
+                onPageChange={setCurrentPage}
+                itemName="projects"
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
